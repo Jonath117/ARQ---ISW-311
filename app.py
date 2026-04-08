@@ -3,9 +3,19 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 app = Flask(__name__)
 CORS(app)
 DB_NAME = "consultas.db"
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"], 
+    storage_uri="memory://"
+)
 
 # func dbb
 def init_db():
@@ -36,7 +46,18 @@ def guardar_consulta(a, b, resultado):
     conn.commit()
     conn.close()
 
+@app.route('/', methods=['GET'])
+def mostrar_dashboard():
+    """Sirve el archivo HTML del Frontend"""
+    try:
+        with open('index.html', 'r', encoding='utf-8') as file:
+            return file.read()
+    except Exception as e:
+        return f"Error: No se encontró el archivo index.html. {str(e)}"
+
+
 @app.route('/sumar', methods=['GET'])
+@limiter.limit("2 per second") 
 def sumar_numeros():
     a = request.args.get('a', type=float)
     b = request.args.get('b', type=float)
@@ -57,7 +78,6 @@ def sumar_numeros():
 
 @app.route('/historial', methods=['GET'])
 def ver_historial():
-    """Este ahora sí funcionará porque pertenece a la misma 'app'"""
     try:
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()

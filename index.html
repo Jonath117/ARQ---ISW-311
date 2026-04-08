@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Microservicio de Suma</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .refresh-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .refresh-btn:hover {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1> Historial de Sumas</h1>
+        <p style="text-align: center;">Microservicio desarrollado para Arquitectura de Software</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Valor A</th>
+                    <th>Valor B</th>
+                    <th>Resultado</th>
+                    <th>Fecha y Hora</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-body">
+                </tbody>
+        </table>
+
+        <button class="refresh-btn" onclick="cargarHistorial()">Actualizar Datos</button>
+    </div>
+
+    <script>
+        async function cargarHistorial() {
+            const url = '/historial'; 
+            
+            try {
+                const respuesta = await fetch(url);
+                const datos = await respuesta.json();
+                
+                const tbody = document.getElementById('tabla-body');
+                tbody.innerHTML = '';
+                
+                datos.forEach(fila => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${fila.id}</td>
+                        <td>${fila.a}</td>
+                        <td>${fila.b}</td>
+                        <td><strong>${fila.resultado}</strong></td>
+                        <td>${fila.fecha}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("El servidor no responde:", error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="color: white; background-color: #e74c3c; font-weight: bold;">
+                            🚨 ERROR: El microservicio está apagado o fuera de línea. Por favor, intenta más tarde.
+                        </td>
+                    </tr>`;
+            }
+        }
+        window.onload = cargarHistorial;
+    </script>
+
+</body>
+</html>
